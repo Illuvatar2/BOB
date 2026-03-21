@@ -57,7 +57,7 @@ public class BOB {
 
             URI testURI = Objects.requireNonNull(getClass()
                     .getClassLoader()
-                    .getResource("scenario/ww1/")).toURI();
+                    .getResource("scenario/")).toURI();
 
             scenarioSceneLoader.load(testURI);
         } catch (URISyntaxException e) {
