@@ -3,6 +3,7 @@ package de.idiotischer.bob.networking;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.stream.JsonReader;
+import de.idiotischer.bob.BOB;
 import de.idiotischer.bob.networking.packet.impl.PingPacket;
 
 import java.io.FileReader;
