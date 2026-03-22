@@ -31,7 +31,7 @@ tasks.shadowJar {
     archiveClassifier.set("")
     archiveBaseName.set("BOB-main")
     manifest {
-        attributes["Main-Class"] = "de.idiotischer.bob.render.MainRenderer"
+        attributes["Main-Class"] = "de.idiotischer.bob.BOB"
     }
 }
 
