@@ -1,6 +1,6 @@
 plugins {
     id("java")
-    id("com.gradleup.shadow") version "8.3.6"
+    id("com.gradleup.shadow") version "9.4.0"
 }
 
 group = "de.idiotischer"
@@ -23,13 +23,13 @@ dependencies {
 }
 
 tasks.shadowJar {
-    // Only embed shared classes
+    // (shared + gson + craftscore)
     configurations = listOf(project.configurations.getByName("runtimeClasspath"))
-    dependencies {
-        include(project(":shared"))
-    }
     archiveClassifier.set("")
     archiveBaseName.set("BOB-main")
+    manifest {
+        attributes["Main-Class"] = "de.idiotischer.bob.BOB"
+    }
 }
 
 tasks.jar {
