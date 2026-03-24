@@ -4,13 +4,15 @@
             "name":"div1",
             "org":"40",
             "strength":"100",
-            "template":"test"
+            "template":"test",
+            "state":"state_1"
         },
         "div2":{
             "name":"div2",
             "org":"40",
             "strength":"100",
-            "template":"test"
+            "template":"test",
+            "state":"state_1"
         }
     },
     "FRA":{
@@ -18,13 +20,15 @@
             "name":"div1",
             "org":"40",
             "strength":"100",
-            "template":"test"
+            "template":"test",
+            "state":"state_1"
         },
         "div2":{
             "name":"div2",
             "org":"40",
             "strength":"100",
-            "template":"test"
+            "template":"test",
+            "state":"state_1"
         }
     }
 }
