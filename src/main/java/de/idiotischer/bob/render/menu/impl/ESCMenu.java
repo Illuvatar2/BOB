@@ -2,7 +2,7 @@ package de.idiotischer.bob.render.menu.impl;
 
 import de.idiotischer.bob.BOB;
 import de.idiotischer.bob.render.menu.Menu;
-import de.idiotischer.bob.render.menu.components.ButtonComp;
+import de.idiotischer.bob.render.menu.components.button.ButtonComp;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;

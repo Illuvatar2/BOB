@@ -7,10 +7,10 @@ import de.idiotischer.bob.render.menu.impl.StartMenu;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseWheelEvent;
+import java.awt.event.*;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
+import java.awt.image.Raster;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,7 +40,6 @@ public class MenuPanel extends JPanel implements Panel {
         this.menuList.add(scenarioSelectMenu);
         this.menuList.add(startMenu);
 
-
         this.setBackground(Color.BLACK);
         this.setFocusable(true);
         this.requestFocusInWindow();
@@ -65,7 +64,9 @@ public class MenuPanel extends JPanel implements Panel {
 
         Graphics2D g2 = (Graphics2D) g;
 
-        g.drawImage(frame, 0, 0, getWidth(),getHeight(),this);
+        g.drawImage(frame, 0, 0, getWidth(), getHeight(),this);
+        //for a while we will use th eold method again, but: use this cause the other line scales it to the whole screen which would be an inconsistency between game and menu
+        //handleZoom(g2);
         g.setColor(new Color(255, 255, 255, 70));
         g.fillRect(0,0, getWidth(), getHeight());
 
@@ -78,6 +79,21 @@ public class MenuPanel extends JPanel implements Panel {
             startMenu.paint(g2);
         }
 
+    }
+
+    private void handleZoom(Graphics2D g2) {
+        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+
+        AffineTransform oldTransform = g2.getTransform();
+
+        g2.translate(-renderer.getOffsetX(), -renderer.getOffsetY());
+
+        g2.scale(renderer.getZoom(), renderer.getZoom());
+
+        g2.drawImage(frame, 0, 0,null);
+
+        g2.setTransform(oldTransform);
     }
 
     @Override

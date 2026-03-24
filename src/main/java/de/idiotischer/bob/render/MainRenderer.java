@@ -96,14 +96,6 @@ public class MainRenderer extends Thread {
         frame.setExtendedState(Frame.MAXIMIZED_BOTH);
     }
 
-    public void setMainMenu(boolean mm) {
-        this.inMenu = mm;
-    }
-
-    public MenuPanel getMenuPanel() {
-        return menuPanel;
-    }
-
     @Override
     public void run() {
         listen();
@@ -139,7 +131,7 @@ public class MainRenderer extends Thread {
 
             if (!inMenu) {
                 if(!renderPanel.isPaused()) handleMovement();
-                renderMap(map);
+                renderPanel.setFrame(renderMap(map));
                 renderPanel.repaint();
             } else {
                 renderMenu();
@@ -154,13 +146,6 @@ public class MainRenderer extends Thread {
         }
     }
 
-    private void renderMenu() {
-
-    }
-
-    public JFrame getFrame() {
-        return frame;
-    }
 
     public void listen() {
 
@@ -295,34 +280,6 @@ public class MainRenderer extends Thread {
                 });
             }
         }
-
-        //renderPanel.addKeyListener(new KeyAdapter() {
-        //            @Override
-        //            public void keyPressed(KeyEvent e) {
-        //                char forward = 'w';
-        //                char backward = 's';
-        //                char right = 'a';
-        //                char left = 'd';
-        //
-        //                if(e.getKeyChar() == forward) move(0, -1);
-        //                else if(e.getKeyChar() == backward) move(0, 1);
-        //                else if(e.getKeyChar() == right) move(-1, 0);
-        //                else if(e.getKeyChar() == left) move(1, 0);
-        //            }
-        //        });
-    }
-
-    private double getMinZoom() {
-        double panelWidth = renderPanel.getWidth();
-        double panelHeight = renderPanel.getHeight();
-
-        double mapWidth = map.getWidth();
-        double mapHeight = map.getHeight();
-
-        double zoomX = panelWidth / mapWidth;
-        double zoomY = panelHeight / mapHeight;
-
-        return Math.min(zoomX, zoomY);
     }
 
     private void handleMenuClick(MouseEvent e, int x, int y) {
@@ -371,56 +328,6 @@ public class MainRenderer extends Thread {
         });
     }
 
-    private void handleMovement() {
-        int dx = 0;
-        int dy = 0;
-        int speed = 5;
-
-        if(keysPressed.contains(KeyEvent.VK_SHIFT)) speed += 5;
-
-        if(keysPressed.contains(KeyEvent.VK_W)) dy -= speed;
-        if(keysPressed.contains(KeyEvent.VK_S)) dy += speed;
-        if(keysPressed.contains(KeyEvent.VK_A)) dx -= speed;
-        if(keysPressed.contains(KeyEvent.VK_D)) dx += speed;
-
-        move(dx, dy);
-    }
-
-    public Set<Integer> getKeysPressed() {
-        return keysPressed;
-    }
-
-    public void move(int xMove, int yMove) {
-        offsetX += xMove;
-        offsetY += yMove;
-
-        clampOffsets();
-    }
-
-    //TODO: damit man nciht beim zoomen so kurz raus und wieder rein gebuggt wird halt die neuen offsets übergeben, dann die geclampten zurückgeben lassen und dann erst setzen
-    private void clampOffsets() {
-        int panelWidth = renderPanel.getWidth();
-        int panelHeight = renderPanel.getHeight();
-
-        int mapWidth = map.getWidth();
-        int mapHeight = map.getHeight();
-
-        double scaledWidth = mapWidth * zoom;
-        double scaledHeight = mapHeight * zoom;
-
-        if (scaledWidth <= panelWidth) {
-            offsetX = -(panelWidth - scaledWidth) / 2;
-        } else {
-            offsetX = Math.max(0, Math.min(offsetX, scaledWidth - panelWidth));
-        }
-
-        if (scaledHeight <= panelHeight) {
-            offsetY = -(panelHeight - scaledHeight) / 2;
-        } else {
-            offsetY = Math.max(0, Math.min(offsetY, scaledHeight - panelHeight));
-        }
-    }
-
     private void handleCountryMenu(int x, int y) {
 
         if(renderPanel.isPaused()) return;
@@ -451,7 +358,33 @@ public class MainRenderer extends Thread {
         //FloodFill.fillBorder(visualBorderOverlay, map, x,y, Color.DARK_GRAY);
     }
 
-    private void renderMap(BufferedImage map) {
+    private void handleMovement() {
+        int dx = 0;
+        int dy = 0;
+        int speed = 5;
+
+        if(keysPressed.contains(KeyEvent.VK_SHIFT)) speed += 5;
+
+        if(keysPressed.contains(KeyEvent.VK_W)) dy -= speed;
+        if(keysPressed.contains(KeyEvent.VK_S)) dy += speed;
+        if(keysPressed.contains(KeyEvent.VK_A)) dx -= speed;
+        if(keysPressed.contains(KeyEvent.VK_D)) dx += speed;
+
+        move(dx, dy);
+    }
+
+    public void move(int xMove, int yMove) {
+        offsetX += xMove;
+        offsetY += yMove;
+
+        clampOffsets();
+    }
+
+    private void renderMenu() {
+        menuPanel.setFrame(renderMap(map));
+    }
+
+    private BufferedImage renderMap(BufferedImage map) {
         BufferedImage frameBuffer = new BufferedImage(
                 map.getWidth(),
                 map.getHeight(),
@@ -466,15 +399,7 @@ public class MainRenderer extends Thread {
 
         g.dispose();
 
-        renderPanel.setFrame(frameBuffer);
-    }
-
-    public Point getDragStart() {
-        return dragStart;
-    }
-
-    public Point getDragEnd() {
-        return dragEnd;
+        return frameBuffer;
     }
 
     //private void render(BufferedImage map) {
@@ -489,7 +414,37 @@ public class MainRenderer extends Thread {
     //    renderPanel.setFrame(frame);
     //}
 
-    private static abstract class FrameListen implements ComponentListener{
+    //TODO: damit man nciht beim zoomen so kurz raus und wieder rein gebuggt wird halt die neuen offsets übergeben, dann die geclampten zurückgeben lassen und dann erst setzen
+    public void clampOffsets() {
+        int panelWidth = renderPanel.getWidth();
+        int panelHeight = renderPanel.getHeight();
+
+        int mapWidth = map.getWidth();
+        int mapHeight = map.getHeight();
+
+        double scaledWidth = mapWidth * zoom;
+        double scaledHeight = mapHeight * zoom;
+
+        if (scaledWidth <= panelWidth) {
+            offsetX = -(panelWidth - scaledWidth) / 2;
+        } else {
+            offsetX = Math.max(0, Math.min(offsetX, scaledWidth - panelWidth));
+        }
+
+        if (scaledHeight <= panelHeight) {
+            offsetY = -(panelHeight - scaledHeight) / 2;
+        } else {
+            offsetY = Math.max(0, Math.min(offsetY, scaledHeight - panelHeight));
+        }
+    }
+
+    public void shutdown() {
+        if(!BOB.getInstance().save()) IO.println("Failed to safe before shutdown...");
+        running = false;
+        System.exit(0);
+    }
+
+    public static abstract class FrameListen implements ComponentListener{
         public void componentHidden(ComponentEvent arg0) {
         }
         public void componentMoved(ComponentEvent arg0) {
@@ -502,10 +457,17 @@ public class MainRenderer extends Thread {
         }
     }
 
-    public void shutdown() {
-        if(!BOB.getInstance().save()) IO.println("Failed to safe before shutdown...");
-        running = false;
-        System.exit(0);
+    public double getMinZoom() {
+        double panelWidth = renderPanel.getWidth();
+        double panelHeight = renderPanel.getHeight();
+
+        double mapWidth = map.getWidth();
+        double mapHeight = map.getHeight();
+
+        double zoomX = panelWidth / mapWidth;
+        double zoomY = panelHeight / mapHeight;
+
+        return Math.min(zoomX, zoomY);
     }
 
     public RenderPanel getGamePanel() {
@@ -518,4 +480,48 @@ public class MainRenderer extends Thread {
 
     public double getOffsetX() { return offsetX; }
     public double getOffsetY() { return offsetY; }
+
+    public void setOffsetX(double offsetX) {
+        this.offsetX = offsetX;
+    }
+
+    public void setOffsetY(double offsetY) {
+        this.offsetY = offsetY;
+    }
+
+    public boolean isWasAtMinZoom() {
+        return wasAtMinZoom;
+    }
+
+    public void setZoom(double zoom) {
+        this.zoom = zoom;
+    }
+
+    public void setWasAtMinZoom(boolean wasAtMinZoom) {
+        this.wasAtMinZoom = wasAtMinZoom;
+    }
+
+    public Set<Integer> getKeysPressed() {
+        return keysPressed;
+    }
+
+    public void setMainMenu(boolean mm) {
+        this.inMenu = mm;
+    }
+
+    public MenuPanel getMenuPanel() {
+        return menuPanel;
+    }
+
+    public Point getDragStart() {
+        return dragStart;
+    }
+
+    public Point getDragEnd() {
+        return dragEnd;
+    }
+
+    public JFrame getFrame() {
+        return frame;
+    }
 }

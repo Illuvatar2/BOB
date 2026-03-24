@@ -18,6 +18,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+//maybe handle currentselected scenario here even though it's more of a local thing for the menu?
 public class ScenarioSceneLoader {
 
     private Scenario currentScenario = null;

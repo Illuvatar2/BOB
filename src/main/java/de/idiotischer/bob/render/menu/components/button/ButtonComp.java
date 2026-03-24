@@ -1,4 +1,4 @@
-package de.idiotischer.bob.render.menu.components;
+package de.idiotischer.bob.render.menu.components.button;
 
 import de.idiotischer.bob.BOB;
 import de.idiotischer.bob.render.menu.Component;

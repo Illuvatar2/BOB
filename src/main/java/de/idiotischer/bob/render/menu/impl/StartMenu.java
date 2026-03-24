@@ -3,7 +3,7 @@ package de.idiotischer.bob.render.menu.impl;
 import de.idiotischer.bob.BOB;
 import de.idiotischer.bob.render.menu.Component;
 import de.idiotischer.bob.render.menu.Menu;
-import de.idiotischer.bob.render.menu.components.ButtonComp;
+import de.idiotischer.bob.render.menu.components.button.ButtonComp;
 
 import javax.swing.*;
 import java.awt.*;
