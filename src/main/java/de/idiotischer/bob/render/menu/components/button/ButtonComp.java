@@ -10,7 +10,10 @@ import java.util.function.Consumer;
 
 public class ButtonComp implements Component {
     private final String text;
-    private final Rectangle bounds;
+    private final String id;
+    private final Color selectedColor;
+
+    private Rectangle bounds;
     private final Color bgColor;
     private final Color textColor;
     private final Consumer<ButtonComp> onClick;
@@ -24,16 +27,23 @@ public class ButtonComp implements Component {
 
     private boolean hovered = false;
     private boolean pressed = false;
+    private boolean selected = false;
 
     public static long lastClickTime = 0;
     private long CLICK_THRESHOLD = 200;
     private JPanel panel;
 
     public ButtonComp(String text, Color textColor, Color borderColor, boolean unselectWhenUnhover, int x, int y, int width, int height, int arcWidth, int arcHeight, int borderWidth, Color borderColorWhenHover, Color color, boolean centered, Consumer<ButtonComp> onClick) {
+        this("", text,textColor, Color.WHITE, borderColor, unselectWhenUnhover, x, y, width, height, arcWidth, arcHeight, borderWidth, borderColorWhenHover, color, centered, onClick);
+    }
+
+    public ButtonComp(String id, String text, Color textColor, Color selectedColor, Color borderColor, boolean unselectWhenUnhover, int x, int y, int width, int height, int arcWidth, int arcHeight, int borderWidth, Color borderColorWhenHover, Color color, boolean centered, Consumer<ButtonComp> onClick) {
+        this.id = id;
         this.text = text;
         this.bounds = new Rectangle(x, y, width, height);
         this.bgColor = color;
         this.textColor = textColor;
+        this.selectedColor = selectedColor;
         this.onClick = onClick;
         this.arcWidth = arcWidth;
         this.arcHeight = arcHeight;
@@ -42,6 +52,10 @@ public class ButtonComp implements Component {
         this.borderColor = borderColor;
         this.borderColorWhenHover = borderColorWhenHover;
         this.unselectWhenUnhover = unselectWhenUnhover;
+    }
+
+    public void setBounds(Rectangle bounds) {
+        this.bounds = bounds;
     }
 
     public void setPanel(JPanel pl) {
@@ -64,7 +78,7 @@ public class ButtonComp implements Component {
         y -= bounds.y;
 
         Color displayColor = bgColor;
-        if (pressed) {
+        if (pressed && unselectWhenUnhover) {
             displayColor = bgColor.darker();
         } else if (hovered) {
             displayColor = bgColor.brighter();
@@ -105,9 +119,11 @@ public class ButtonComp implements Component {
             }
 
             lastClickTime = currentTime;
+            selected = true;
             onClick.accept(this);
         }
         pressed = false;
+        if(unselectWhenUnhover) selected = false;
     }
 
     @Override
@@ -124,7 +140,7 @@ public class ButtonComp implements Component {
         return bounds;
     }
 
-    private Rectangle getActualBounds() {
+    public Rectangle getActualBounds() {
         JPanel pl = panel != null ? panel : BOB.getInstance().getMapRenderer().getGamePanel();
         int x = centered ? pl.getWidth() / 2 - (bounds.width / 2) : bounds.x;
         int y = centered ? pl.getHeight() / 2 - (bounds.height / 2) : bounds.y;
@@ -135,5 +151,9 @@ public class ButtonComp implements Component {
 
     public String getText() {
         return text;
+    }
+
+    public String getId() {
+        return id;
     }
 }
