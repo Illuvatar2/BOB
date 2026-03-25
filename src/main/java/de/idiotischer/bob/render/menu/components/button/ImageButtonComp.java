@@ -31,8 +31,8 @@ public class ImageButtonComp implements IButtonComp {
     private boolean pressed = false;
     private boolean selected = false;
 
-    public static long lastClickTime = 0;
-    private long CLICK_THRESHOLD = 200;
+    private long lastClickTime = 0L;
+    private static final long CLICK_THRESHOLD = 200L;
     private JPanel panel;
     private boolean debug = false;
 
