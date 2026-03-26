@@ -142,7 +142,7 @@ public class CountrySelectMenu extends SelectMenu {
                 null,
                 true,
                 buttonGroup,
-                (_) -> {}
+                (ignored) -> {}
         );
 
         b.setUseImgHeight(false);

@@ -5,12 +5,6 @@ plugins {
 group = "de.idiotischer.bob"
 version = "1.0-SNAPSHOT"
 
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(21))
-    }
-}
-
 repositories {
     mavenCentral()
     maven {
@@ -32,4 +26,10 @@ dependencies {
     implementation("com.google.guava:guava:33.5.0-jre")
     // Source: https://mvnrepository.com/artifact/it.unimi.dsi/fastutil
     implementation("it.unimi.dsi:fastutil:8.5.18")
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))  //centralize jdk ver from gradle.properties pwease
+    }
 }

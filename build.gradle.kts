@@ -81,6 +81,12 @@ tasks.register("buildPreRun") {
     }
 }
 
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))  //centralize jdk ver from gradle.properties pwease
+    }
+}
+
 tasks.jar {
     enabled = false
 }

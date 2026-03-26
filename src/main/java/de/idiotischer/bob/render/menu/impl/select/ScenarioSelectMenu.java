@@ -197,7 +197,7 @@ public class ScenarioSelectMenu extends SelectMenu {
                     16, 16,
                     3, Color.LIGHT_GRAY,
                     Color.DARK_GRAY,
-                    true, scrollGroup, (_) -> {});
+                    true, scrollGroup, (ignored) -> {});
             b.setPanel(parent);
             buttons.add(b);
 
