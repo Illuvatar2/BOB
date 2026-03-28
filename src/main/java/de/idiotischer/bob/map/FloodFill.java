@@ -171,7 +171,7 @@ public class FloodFill {
             Color currentColor = new Color(surface.getRGB(px, py), true);
             if (!currentColor.equals(oldColor)) {
                 Color refColor = new Color(referenceSurface.getRGB(px, py), true);
-                if (BOB.getInstance().getCountries().colorToCountry(refColor.getRed(), refColor.getGreen(), refColor.getBlue()) == null) {
+                if (BOB.getInstance().getCountryManager().colorToCountry(refColor.getRed(), refColor.getGreen(), refColor.getBlue()) == null) {
                     border.add(new int[]{px, py});
                 }
                 continue;
@@ -192,7 +192,7 @@ public class FloodFill {
                 int ex = pos[0], ey = pos[1];
                 if (ex < 0 || ex >= surface.getWidth() || ey < 0 || ey >= surface.getHeight()) continue;
                 Color refC = new Color(referenceSurface.getRGB(ex, ey), true);
-                if (BOB.getInstance().getCountries().colorToCountry(refC.getRed(), refC.getGreen(), refC.getBlue()) == null) {
+                if (BOB.getInstance().getCountryManager().colorToCountry(refC.getRed(), refC.getGreen(), refC.getBlue()) == null) {
                     stack.push(pos);
                 }
             }
@@ -235,7 +235,7 @@ public class FloodFill {
 
             Color currentColor = new Color(surface.getRGB(px, py), true);
             if (!currentColor.equals(oldColor)) {
-                if (BOB.getInstance().getCountries().colorToCountry(currentColor.getRed(), currentColor.getGreen(), currentColor.getBlue()) == null) {
+                if (BOB.getInstance().getCountryManager().colorToCountry(currentColor.getRed(), currentColor.getGreen(), currentColor.getBlue()) == null) {
                     border.add(new int[]{px, py});
                 }
                 continue;
@@ -260,7 +260,7 @@ public class FloodFill {
 
                 if (c.equals(Color.BLACK)) {
                     stack.push(pos);
-                } else if (BOB.getInstance().getCountries().colorToCountry(c.getRed(), c.getGreen(), c.getBlue()) == null) {
+                } else if (BOB.getInstance().getCountryManager().colorToCountry(c.getRed(), c.getGreen(), c.getBlue()) == null) {
                     if (!(c.getRed() == c.getGreen() && c.getGreen() == c.getBlue())) {
                         if (!c.equals(newColor) && !c.equals(oldColor) && !c.equals(new Color(126, 142, 158))) {
                             stack.push(pos);
@@ -288,7 +288,7 @@ public class FloodFill {
 
                     Color neighbor = new Color(surface.getRGB(nx, ny), true);
                     if (!colors.contains(neighbor)) {
-                        if (BOB.getInstance().getCountries().colorToCountry(neighbor.getRed(), neighbor.getGreen(), neighbor.getBlue()) == null) {
+                        if (BOB.getInstance().getCountryManager().colorToCountry(neighbor.getRed(), neighbor.getGreen(), neighbor.getBlue()) == null) {
                             if (neighbor.equals(new Color(105, 118, 132)) || neighbor.equals(new Color(126, 142, 158))) {
                                 colors.add(neighbor);
                             }

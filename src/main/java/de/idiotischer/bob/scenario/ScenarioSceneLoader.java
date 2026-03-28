@@ -22,7 +22,7 @@ public class ScenarioSceneLoader {
 
         if(BOB.getInstance().getMainRenderer() == null) return;
 
-        BOB.getInstance().getCountries().reload();
+        BOB.getInstance().getCountryManager().reload();
 
         if(switchMM) {
             BOB.getInstance().getMainRenderer().getGamePanel().setEscMenu(false);

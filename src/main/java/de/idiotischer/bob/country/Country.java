@@ -1,7 +1,6 @@
 package de.idiotischer.bob.country;
 
 import de.idiotischer.bob.BOB;
-import de.idiotischer.bob.scenario.Scenario;
 import de.idiotischer.bob.util.FileUtil;
 
 import javax.imageio.ImageIO;
@@ -100,26 +99,26 @@ public class Country {
     }
 
     public Set<Country> getPuppets() {
-        return BOB.getInstance().getCountries().getCountrySet().stream().filter(c -> !c.isFree()).collect(Collectors.toSet());
+        return BOB.getInstance().getCountryManager().getCountries().stream().filter(c -> !c.isFree()).collect(Collectors.toSet());
     }
 
     public static Country fromNameExact(String name) {
-        return BOB.getInstance().getCountries().getCountrySet().stream().filter(country -> country.countryName().equals(name)).findFirst().orElse(null);
+        return BOB.getInstance().getCountryManager().getCountries().stream().filter(country -> country.countryName().equals(name)).findFirst().orElse(null);
     }
 
     public static Country fromAbbreviation(String abbreviation) {
-        return BOB.getInstance().getCountries().getCountrySet().stream().filter(country -> country.getAbbreviation().equals(abbreviation.toUpperCase())).findFirst().orElse(null);
+        return BOB.getInstance().getCountryManager().getCountries().stream().filter(country -> country.getAbbreviation().equals(abbreviation.toUpperCase())).findFirst().orElse(null);
     }
 
     @Deprecated(forRemoval = true)
     public static Country fromColor(Color color) {
-        return BOB.getInstance().getCountries().getCountrySet().stream().filter(country -> country.countryColor().equals(color)).findFirst().orElse(null);
+        return BOB.getInstance().getCountryManager().getCountries().stream().filter(country -> country.countryColor().equals(color)).findFirst().orElse(null);
     }
 
     @Deprecated(forRemoval = true)
     public static Country fromPixel(int x, int y) {
         Color color = null;//color getten
-        return BOB.getInstance().getCountries().getCountrySet().stream().filter(country -> country.countryColor().equals(color)).findFirst().orElse(null);
+        return BOB.getInstance().getCountryManager().getCountries().stream().filter(country -> country.countryColor().equals(color)).findFirst().orElse(null);
     }
 
     @Override

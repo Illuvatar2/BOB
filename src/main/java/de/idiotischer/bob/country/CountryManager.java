@@ -9,10 +9,12 @@ import de.idiotischer.bob.state.State;
 
 import java.awt.*;
 import java.nio.file.Files;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 
 public class CountryManager {
 
@@ -83,8 +85,11 @@ public class CountryManager {
         return BOB.getInstance().getStateManager().getStateSet().stream().filter(s -> s.getController() == country).toList();
     }
 
-    public Set<Country> getCountrySet() {
-        return countrySet;
+    public List<Country> getCountries() {
+        return countrySet
+                .stream()
+                .sorted(Comparator.comparing(Country::getAbbreviation))
+                .toList();
     }
 
     //public List<Country> getMajors() {
@@ -96,21 +101,24 @@ public class CountryManager {
     //}
 
     public List<Country> getMajors() {
-        return getCountrySet().stream()
+        return getCountries().stream()
                 .filter(Country::isMajor)
-                .sorted((c1, c2) -> c1.getAbbreviation().compareTo(c2.getAbbreviation()))
+                .sorted(Comparator.comparing(Country::getAbbreviation))
                 .toList();
     }
 
     public List<Country> getOnSelectScreen() {
-        return getCountrySet().stream()
+        return getCountries().stream()
                 .filter(Country::isSelectScreen)
-                .sorted((c1, c2) -> c1.getAbbreviation().compareTo(c2.getAbbreviation()))
+                .sorted(Comparator.comparing(Country::getAbbreviation))
                 .toList();
     }
 
     public List<Country> getMinors() {
-        return getCountrySet().stream().filter(c -> !c.isMajor()).toList();
+        return getCountries().stream()
+                .filter(c -> !c.isMajor())
+                .sorted(Comparator.comparing(Country::getAbbreviation))
+                .toList();
     }
 
     public void splitCountry(Country country) {

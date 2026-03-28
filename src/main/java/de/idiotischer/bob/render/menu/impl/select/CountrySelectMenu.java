@@ -93,7 +93,7 @@ public class CountrySelectMenu extends SelectMenu {
             String id = btn.getId();
             if (id == null || id.isEmpty()) return;
 
-            selectedCountry = BOB.getInstance().getCountries().getCountry(id);
+            selectedCountry = BOB.getInstance().getCountryManager().getCountry(id);
         });
 
         reload();
@@ -111,8 +111,8 @@ public class CountrySelectMenu extends SelectMenu {
     }
 
     public void reloadScroll() {
-        List<Country> cs = new ArrayList<>(BOB.getInstance().getCountries().getCountrySet());
-        cs.removeAll(BOB.getInstance().getCountries().getOnSelectScreen());
+        List<Country> cs = new ArrayList<>(BOB.getInstance().getCountryManager().getCountries());
+        cs.removeAll(BOB.getInstance().getCountryManager().getOnSelectScreen());
 
         List<ButtonComp> buttons = new ArrayList<>();
         for (Country s : cs) {
@@ -138,7 +138,7 @@ public class CountrySelectMenu extends SelectMenu {
     }
 
     public void reloadRow() {
-        List<Country> cs = BOB.getInstance().getCountries().getOnSelectScreen();
+        List<Country> cs = BOB.getInstance().getCountryManager().getOnSelectScreen();
 
         int limit = Math.min(iButtonComps.size(), cs.size());
 
