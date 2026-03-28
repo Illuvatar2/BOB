@@ -209,4 +209,87 @@ public class FileUtil {
         }
         return scenarioDir;
     }
+
+    public static Path getFlagsDir() {
+        Path flagsDir = getJarDir().toAbsolutePath().resolve("flags/");
+
+        if(Files.notExists(flagsDir)) {
+            try {
+                Files.createDirectory(flagsDir);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        return flagsDir;
+    }
+
+    public static Path getCoatsDir() {
+        Path flagsDir = getJarDir().toAbsolutePath().resolve("icons/");
+
+        if(Files.notExists(flagsDir)) {
+            try {
+                Files.createDirectory(flagsDir);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        return flagsDir;
+    }
+
+    /* WIP */
+    @ApiStatus.Experimental
+    public static Path getCountryFlagsDir(String abbreviation) {
+        Path countryFlagsDir = getFlagsDir().resolve(abbreviation);
+
+        if(Files.notExists(countryFlagsDir)) {
+            try {
+                Files.createDirectory(countryFlagsDir);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        return countryFlagsDir;
+    }
+
+    /* WIP */
+    @ApiStatus.Experimental
+    public static Path getCoat(String abbreviation) {
+        Path countryFlagsDir = getCoatsDir().resolve(abbreviation);
+
+        return countryFlagsDir.resolve(abbreviation + ".png");
+    }
+
+    /* WIP */
+    @ApiStatus.Experimental
+    public static Path getCoat(String abbreviation, String flagAbbreviation) {
+        Path countryFlagsDir = getFlagsDir().resolve(abbreviation);
+        Path flag = countryFlagsDir.resolve(abbreviation + "_" + flagAbbreviation + ".png");
+
+        if(Files.notExists(flag)) {
+            flag = getFlag(abbreviation);
+        }
+
+        return flag;
+    }
+
+    public static Path getFlag(String abbreviation) {
+        Path countryFlagsDir = getFlagsDir().resolve(abbreviation);
+
+        return countryFlagsDir.resolve(abbreviation + ".png");
+    }
+
+    //flagAbbreviation can also just be any other thing not only ideology yk
+    public static Path getFlag(String abbreviation, String flagAbbreviation) {
+        Path countryFlagsDir = getFlagsDir().resolve(abbreviation);
+        Path flag = countryFlagsDir.resolve(abbreviation + "_" + flagAbbreviation + ".png");
+
+        if(Files.notExists(flag)) {
+            flag = getFlag(abbreviation);
+        }
+
+        return flag;
+    }
 }

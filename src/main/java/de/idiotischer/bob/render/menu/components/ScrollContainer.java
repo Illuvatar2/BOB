@@ -11,29 +11,40 @@ import java.awt.event.MouseWheelEvent;
 import java.util.ArrayList;
 import java.util.List;
 
-//add scrolling xD
 public class ScrollContainer implements Component {
     private final JPanel panel;
     private final Color color;
-
     private final boolean centered;
 
     private Rectangle bounds;
     private List<ButtonComp> children = new ArrayList<>();
 
     private int scrollOffset = 0;
+    private final int padding = 20;
+    private final int spacing = 15;
 
-    private final int padding = 10;
-    private final int spacing = 10;
-
-    private int scrollbarWidth = 12;
+    private final int scrollbarWidth = 12;
     private Rectangle scrollBounds;
 
+    private boolean isDragging = false;
+    private int dragStartMouseY = 0;
+    private int dragStartOffset = 0;
+
+    private int totalContentHeight = 0;
+    private final int thumbHeight = 40;
+    private final boolean centeredUseY;
+    private int centeredYOffset = 0;
+
     public ScrollContainer(JPanel panel, Color color, boolean centered) {
-        bounds = new Rectangle(0, 0, 0, 0);
+        this(panel, color, centered, false);
+    }
+
+    public ScrollContainer(JPanel panel, Color color, boolean centered, boolean centeredUseY) {
+        this.bounds = new Rectangle(0, 0, 0, 0);
         this.panel = panel;
         this.color = color;
         this.centered = centered;
+        this.centeredUseY = centeredUseY;
     }
 
     public void setChildren(List<ButtonComp> children) {
@@ -44,121 +55,183 @@ public class ScrollContainer implements Component {
     private void layoutChildren() {
         int yOffset = padding;
 
-        for (Component child : children) {
-            if (child instanceof ButtonComp btn) {
-                Rectangle b = btn.getBounds();
-                b.y += yOffset - scrollOffset;
-                yOffset += b.height + spacing;
-            }
+        for (ButtonComp btn : children) {
+            Rectangle b = btn.getBounds();
+            b.y = -yOffset;
+
+            yOffset += b.height + spacing;
         }
+
+        this.totalContentHeight = yOffset + padding;
     }
 
     @Override
     public void paint(Graphics g) {
         Graphics2D g2 = (Graphics2D) g.create();
-        try {
-            JPanel pl = panel != null ? panel : BOB.getInstance().getMainRenderer().getGamePanel();
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-            Rectangle bounds = getActualBounds();
+        Rectangle actualBounds = getActualBounds();
 
-            int x = centered ? (pl.getWidth() - bounds.width) / 2 : bounds.x;
-            int y = centered ? (pl.getHeight() - bounds.height) / 2 : bounds.y;
+        g2.setColor(Color.DARK_GRAY.darker());
+        g2.setStroke(new BasicStroke(3));
+        g2.drawRoundRect(actualBounds.x, actualBounds.y, actualBounds.width, actualBounds.height, 24, 24);
 
-            g2.setColor(Color.WHITE);
-            g2.setStroke(new BasicStroke(3));
-            g2.drawRoundRect(x, y, bounds.width, bounds.height, 24, 24);
+        int margin = 10;
+        this.scrollBounds = new Rectangle(
+                actualBounds.x + actualBounds.width - scrollbarWidth - margin,
+                actualBounds.y + margin,
+                scrollbarWidth,
+                actualBounds.height - (margin * 2)
+        );
 
-            g2.setClip(x, y, bounds.width, bounds.height);
+        Shape oldClip = g2.getClip();
 
-            //this will be the image container btu i am too stupdi so i just copied the scrollabr xD
-            int heightShrink = 40;
+        if (totalContentHeight > actualBounds.height) {
 
-            int imgFrameWidth = 350;
-            int frameX = x + bounds.width - imgFrameWidth - 2;
-            int bufferX = heightShrink / 2;
+            g2.setStroke(new BasicStroke(16));
+            g2.setColor(new Color(255, 255, 255, 50));
+            g2.fillRoundRect(scrollBounds.x, scrollBounds.y, scrollBounds.width, scrollBounds.height, 12, 12);
 
-            g2.drawRoundRect(
-                    frameX - bufferX,
-                    y + (heightShrink / 2),
-                    imgFrameWidth,
-                    bounds.height - heightShrink,
-                    24,
-                    24
-            );
+            Rectangle thumb = getThumbBounds();
+            g2.setColor(new Color(255, 255, 255, 180));
+            g2.fillRoundRect(thumb.x, thumb.y, thumb.width, thumb.height, 8, 8);
+        }
 
-            //scrollbar ykyk
-            int barX = x + (bounds.width / 2) - scrollbarWidth - 2;
+        g2.setClip(actualBounds.x, actualBounds.y, actualBounds.width, actualBounds.height);
 
-            this.scrollBounds = new Rectangle(barX - 15, y + (heightShrink / 2), scrollbarWidth, bounds.height - heightShrink);
+        for (ButtonComp child : children) {
+            Graphics2D gChild = (Graphics2D) g2.create();
 
-            g2.drawRoundRect(
-                    scrollBounds.x,
-                    scrollBounds.y,
-                    scrollbarWidth,
-                    bounds.height - heightShrink,
-                    12,
-                    12
-            );
+            gChild.translate(actualBounds.x, actualBounds.y - scrollOffset);
+            child.paint(gChild);
+            gChild.dispose();
+        }
 
-            for (ButtonComp child : children) {
-                child.setDebug(true);
-                child.paint(g2);
+        g2.setClip(oldClip);
+
+        g2.dispose();
+    }
+
+    public Rectangle getThumbBounds() {
+        Rectangle actualBounds = getActualBounds();
+        if (totalContentHeight <= actualBounds.height) return new Rectangle(0,0,0,0);
+
+        int maxScroll = totalContentHeight - actualBounds.height;
+        float scrollPercent = (float) scrollOffset / maxScroll;
+
+        int availableHeight = scrollBounds.height - thumbHeight;
+        int thumbY = scrollBounds.y + (int) (availableHeight * scrollPercent);
+
+        return new Rectangle(scrollBounds.x + 2, thumbY, scrollbarWidth - 4, thumbHeight);
+    }
+
+    private void dispatchEventToChildren(MouseEvent e, String type) {
+        Rectangle actualBounds = getActualBounds();
+
+        if (!type.equals("move") && !actualBounds.contains(e.getPoint())) {
+            return;
+        }
+
+        int relX = e.getX() - actualBounds.x;
+        int relY = e.getY() - actualBounds.y + scrollOffset;
+
+        MouseEvent translatedEvent = new MouseEvent(
+                (java.awt.Component) e.getSource(), e.getID(), e.getWhen(), e.getModifiersEx(),
+                relX, relY, e.getClickCount(), e.isPopupTrigger(), e.getButton()
+        );
+
+        for (ButtonComp child : children) {
+            switch (type) {
+                case "click" -> child.mouseClick(translatedEvent, relX, relY);
+                case "move" -> child.mouseMove(translatedEvent, relX, relY);
+                case "release" -> child.mouseRelease(translatedEvent, relX, relY);
             }
-        } finally {
-            g2.dispose();
         }
     }
 
     @Override
-    public void mouseScroll(MouseWheelEvent e, int x, int y) {
-
-    }
-
-    @Override
     public void mouseClick(MouseEvent e, int x, int y) {
-        getChildren().forEach(component -> component.mouseClick(e, x, y));
-    }
-
-    @Override
-    public void mouseRelease(MouseEvent e, int x, int y) {
-        getChildren().forEach(component -> component.mouseRelease(e, x, y));
+        if (getThumbBounds().contains(e.getPoint())) {
+            isDragging = true;
+            dragStartMouseY = e.getY();
+            dragStartOffset = scrollOffset;
+        } else {
+            dispatchEventToChildren(e, "click");
+        }
     }
 
     @Override
     public void mouseMove(MouseEvent e, int x, int y) {
-        getChildren().forEach(component -> component.mouseMove(e, x, y));
-    }
+        if (isDragging) {
+            Rectangle actualBounds = getActualBounds();
+            int deltaY = e.getY() - dragStartMouseY;
 
-    public void setBounds(Rectangle rectangle) {
-        this.bounds = rectangle;
-    }
+            float scrollRatio = (float) (totalContentHeight - actualBounds.height) / (scrollBounds.height - thumbHeight);
+            scrollOffset = dragStartOffset + (int) (deltaY * scrollRatio);
 
-    public Rectangle getActualBounds() {
-        JPanel pl = panel != null ? panel : BOB.getInstance().getMainRenderer().getGamePanel();
-        int x = centered ? pl.getWidth() / 2 - (bounds.width / 2) : bounds.x;
-        int y = centered ? pl.getHeight() / 2 - (bounds.height / 2) : bounds.y;
-        x += bounds.x;
-        y -= bounds.y;
-        return new Rectangle(x, y, bounds.width, bounds.height);
-    }
-
-    public Rectangle getScrollBounds() {
-        return scrollBounds;
-    }
-
-    public Rectangle getBounds() {
-        return bounds;
+            int maxScroll = Math.max(0, totalContentHeight - actualBounds.height);
+            scrollOffset = Math.max(0, Math.min(scrollOffset, maxScroll));
+        } else {
+            dispatchEventToChildren(e, "move");
+        }
     }
 
     public boolean isCentered() {
         return centered;
     }
 
+    public JPanel getPanel() {
+        return panel;
+    }
+
+    @Override
+    public void mouseRelease(MouseEvent e, int x, int y) {
+        isDragging = false;
+        dispatchEventToChildren(e, "release");
+    }
+
+    @Override
+    public void mouseScroll(MouseWheelEvent e, int x, int y) {
+        Rectangle actualBounds = getActualBounds();
+
+        if (!actualBounds.contains(e.getPoint())) return;
+
+        int scrollAmount = e.getWheelRotation() * 30;
+        scrollOffset += scrollAmount;
+
+        int maxScroll = Math.max(0, totalContentHeight - getActualBounds().height);
+        scrollOffset = Math.max(0, Math.min(scrollOffset, maxScroll));
+
+    }
+
+    public Rectangle getActualBounds() {
+        JPanel pl = panel != null
+                ? panel
+                : BOB.getInstance().getMainRenderer().getGamePanel();
+
+        if (pl == null) return bounds;
+
+        int x = bounds.x;
+        int y = bounds.y;
+
+        if (centered) {
+            x = (pl.getWidth() - bounds.width) / 2;
+            y = (pl.getHeight() - bounds.height) / 2;
+            if(centeredUseY) {
+                y -= centeredYOffset;
+            }
+        }
+
+        return new Rectangle(x, y, bounds.width, bounds.height);
+    }
+
+    public void setCenteredYOffset(int centeredYOffset) {
+        this.centeredYOffset = centeredYOffset;
+    }
+
     public List<ButtonComp> getChildren() {
         return children;
     }
 
-    public JPanel getPanel() {
-        return panel;
-    }
+    public void setBounds(Rectangle bounds) { this.bounds = bounds; layoutChildren(); }
 }

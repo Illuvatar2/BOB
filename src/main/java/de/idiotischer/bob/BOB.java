@@ -101,7 +101,7 @@ public class BOB {
         return new ImageIcon(imgURL);
     }
 
-    public CountryManager getCountries() {
+    public CountryManager getCountryManager() {
         return countries;
     }
 
