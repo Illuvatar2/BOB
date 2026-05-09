@@ -8,7 +8,11 @@ plugins {
 }
 
 group = "de.idiotischer"
-version = "1.0-SNAPSHOT"
+version = property("appVersion") as String
+
+val jpackageVersion = (version as String).substringBefore("-")
+
+val isWindows = System.getProperty("os.name").lowercase().contains("windows")
 
 java {
     toolchain {
@@ -46,6 +50,8 @@ dependencies {
 
 tasks.build {
     dependsOn(tasks.shadowJar)
+
+    dependsOn(if (isWindows) "jpackageMain" else "appimageMain")
 }
 
 tasks.shadowJar {
@@ -82,6 +88,87 @@ tasks.register("buildPreRun") {
 
         Files.copy(jarFile.toPath(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
     }
+}
+
+tasks.register<Exec>("jpackageMain") {
+    group = "distribution"
+    description = "Creates a native app-image for the current platform using jpackage"
+    dependsOn(tasks.named("shadowJar"))
+
+    val jpackageBin = if (isWindows)
+        "${System.getProperty("java.home")}\\bin\\jpackage.exe"
+    else
+        "${System.getProperty("java.home")}/bin/jpackage"
+
+    val inputDir  = layout.buildDirectory.dir("libs").get().asFile
+    val outputDir = layout.buildDirectory.dir("jpackage").get().asFile
+
+    val iconFile = if (isWindows)
+        rootProject.file("assets/logo/BOB_logo.ico")
+    else
+        rootProject.file("assets/logo/BOB_logo_large.png")
+
+    doFirst {
+        outputDir.deleteRecursively()
+        outputDir.mkdirs()
+        require(iconFile.exists()) {
+            "Icon not found at ${iconFile.absolutePath}. " +
+                    "On Windows, run the 'Convert icon to ICO' workflow step first."
+        }
+    }
+
+    commandLine(
+        jpackageBin,
+        "--type",        "app-image",
+        "--name",        "BOB",
+        "--app-version", jpackageVersion,
+        "--input",       inputDir.absolutePath,
+        "--main-jar",    "BOB-main.jar",
+        "--icon",        iconFile.absolutePath,
+        "--dest",        outputDir.absolutePath
+    )
+}
+
+tasks.register<Exec>("appimageMain") {
+    group = "distribution"
+    description = "Packages the jpackage app-image as a portable .AppImage (Linux only)"
+    dependsOn(tasks.named("jpackageMain"))
+
+    val appDir    = layout.buildDirectory.dir("jpackage/BOB").get().asFile
+    val outputDir = layout.buildDirectory.dir("appimage").get().asFile
+    val iconSrc   = rootProject.file("assets/logo/BOB_logo_large.png")
+
+    doFirst {
+        require(!isWindows) { "appimageMain is a Linux-only task." }
+        outputDir.mkdirs()
+
+        Files.copy(iconSrc.toPath(), appDir.resolve("BOB.png").toPath(), StandardCopyOption.REPLACE_EXISTING)
+
+        appDir.resolve("BOB.desktop").writeText(
+            """
+            [Desktop Entry]
+            Name=BOB
+            Exec=BOB
+            Icon=BOB
+            Type=Application
+            Categories=Game;
+            """.trimIndent()
+        )
+
+        val appRun = appDir.resolve("AppRun")
+        appRun.writeText(
+            "#!/bin/bash\n" +
+                    "APPDIR=\"\$(dirname \"\$(readlink -f \"\$0\")\")\"\n" +
+                    "exec \"\$APPDIR/bin/BOB\" \"\$@\"\n"
+        )
+        appRun.setExecutable(true)
+    }
+
+    commandLine(
+        "appimagetool",
+        appDir.absolutePath,
+        outputDir.resolve("BOB-$jpackageVersion-x86_64.AppImage").absolutePath
+    )
 }
 
 java {

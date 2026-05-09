@@ -257,10 +257,8 @@ public class ClientSocket {
                 System.out.println("Switching to local server");
             }
 
-            var server =
-                    BOB.getInstance()
-                            .getLocalServer()
-                            .getServerSocket();
+            ServerSocket server = BOB.getInstance().getLocalServer().getServerSocket();
+            //if(BOB.getInstance().getScenarioSceneLoader() != null) BOB.getInstance().getScenarioSceneLoader().requestCurrent();
 
             if (server == null) {
                 reconnecting = false;
@@ -272,8 +270,7 @@ public class ClientSocket {
 
                 try {
                     Thread.sleep(200);
-                } catch (InterruptedException ignored) {
-                }
+                } catch (InterruptedException ignored) {}
             }
 
             reconnect(AddressUtil.getThisAddress(server.getChannel()), null);
